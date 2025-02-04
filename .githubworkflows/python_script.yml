@@ -1,0 +1,27 @@
+name: Run Python Script Regularly
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Esto ejecuta el script todos los días a la medianoche UTC
+  workflow_dispatch:  # Esto permite ejecutar el flujo manualmente si es necesario
+
+jobs:
+  run_script:
+    runs-on: ubuntu-latest  # Puedes elegir el sistema operativo (ubuntu, windows, etc.)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Esto descarga el código del repositorio
+
+      - name: Set up Python
+        uses: actions/setup-python@v2  # Configura el entorno de Python
+        with:
+          python-version: '3.8'  # Configura la versión de Python (puedes cambiarla)
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Asegúrate de tener un archivo requirements.txt con las dependencias
+
+      - name: Run Python script
+        run: python your_script.py  # Ejecuta el script Python

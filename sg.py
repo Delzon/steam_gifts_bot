@@ -3,6 +3,7 @@ import time
 import requests
 import random
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 import os
 import platform
 import re
@@ -11,6 +12,7 @@ from subprocess import call
 import datetime
 import configparser
 
+# Version
 version = "1.4.9"
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
@@ -102,7 +104,7 @@ def get_requests(cookie, req_type, headers):
 def get_game_links(requests_result):
     """call enter_geaways and extract link"""
     soup = BeautifulSoup(requests_result.text, "html.parser")
-    link = soup.find_all(class_="giveaway__heading__name")
+    link = soup.select(".giveaway__heading__name:not(.pinned-giveaways__outer-wrap .giveaway__heading__name)")
     for get_link in link:
         geaway_link = get_link.get("href")
         if geaway_link not in entered_url:
@@ -214,15 +216,27 @@ def get_coins():
 
 
 def set_notify(head, text, separator="\n"):
-    """Set notify only on Linux. If non-Linux or you do want to receive notification just print it to console"""
     print(head, text, sep=separator)
-    if need_send_notify and platform.system() == "Linux":
+    if need_send_notify:
         try:
-            notify2.init('Steam_gifts_bot')
-            n = notify2.Notification(head, text)
-            n.set_timeout(15000)
-            n.set_icon_from_pixbuf(pb)
-            n.show()
+            # Mensaje que deseas enviar
+            message = head+"\n"+text
+
+            # URL para la API de Telegram
+            url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
+
+            # Parámetros para la solicitud
+            params = {
+                'chat_id': chat_id,
+                'text': message
+            }
+            response = requests.post(url, data=params)
+
+            # Comprobar si fue exitoso
+            if response.status_code == 200:
+                print("Mensaje enviado correctamente.")
+            else:
+                print(f"Error al enviar el mensaje: {response.status_code}")
         except Exception as e:
             print(f"Can not send the notification: {e}")
 
@@ -291,16 +305,21 @@ def get_games_from_banners():
 
 
 print("I'm turned on...\nHave a nice day!")
-time.sleep(60)
+#time.sleep(60)
 func_list = []
 
 #let's check is new version available
 check_new_version(version)
 
 #get settings from settings.cfg file and initialize the variables
+
+
 settings=get_settings()
-cookie = dict(settings._sections['cookies'])
-headers = dict(settings._sections['user-agent'])
+bot_token = os.getenv("bot_token")
+chat_id = os.getenv("chat_id")
+
+cookie = dict(PHPSESSID=os.getenv("cookie"))
+headers = {"user-agent": os.getenv("user_agent")}
 
 need_send_notify = int(settings['settings']['send_notify'])
 need_giveaways_from_banners = int(settings['settings']['giveaways_from_banners'])
@@ -313,22 +332,14 @@ for current_temporary_tuple in temporary_tuple:
     if int(settings['settings'][current_temporary_tuple]):
         func_list.append(current_temporary_tuple)
 
-if platform.system() == "Linux" and need_send_notify:
-    try:
-        import notify2
-        import gi
-        gi.require_version('GdkPixbuf', '2.0')
-        from gi.repository.GdkPixbuf import Pixbuf
-        pb = Pixbuf.new_from_file("icon.png")
-    except Exception as e:
-        print(f'Can not initialize variables for send notification due to exception: {e}')
-elif platform.system() == "Windows":
+if platform.system() == "Windows":
     os.system("Chcp 65001")
 
 
 #test cookies
 try:
     r = requests.head("https://www.steamgifts.com/account/settings/profile",cookies=cookie, headers=headers, timeout=120)
+    print(r)
 except Exception as e:
     print("Can not check cookie... Steamgift is possibly unavailable or there is no internet connection")
 if r.status_code == 301 or r.status_code == 302:
@@ -336,7 +347,8 @@ if r.status_code == 301 or r.status_code == 302:
     do_beep("coockie_exept")
     sys.exit(1)
 else:
-    set_notify("Cookies is OK", "We can proceed")
+    #set_notify("Cookies is OK", "We can proceed")
+    print("Cookies is OK", "We can proceed")
     del(r)
 
 
@@ -352,15 +364,18 @@ coins = get_coins()
 entered_url = get_requests(cookie, "enteredlist", headers)
 # func_list=("wishlist", "search", "someone")
 won_count = work_with_win_file(False, 0)
-set_notify("Steam gifts bot has started", f"Total coins: {coins}")
+print("Steam gifts bot has started", f"Total coins: {coins}")
 forbidden_words = (" ban", " fake", " bot", " not enter", " don't enter")
 good_words = (" bank", " banan", " both", " band", " banner", " bang")
 giveaways_from_banner = []
+
 if not need_giveaways_from_banners:
-    get_games_from_banners()
+    #get_games_from_banners()
+    pass
 while True:
     if not need_giveaways_from_banners:
-        get_games_from_banners()
+        #get_games_from_banners()
+        pass
     i_want_to_sleep = False
     for current_func_list in func_list:
         get_requests(cookie, current_func_list,headers)
@@ -371,6 +386,7 @@ while True:
     sleep_time = random.randint(1800, 3600)
     coins = get_coins()
     if not i_want_to_sleep:
-        set_notify("I entered to all giveaways...",  f"Coins left: {coins}")
-    set_notify(f"I am going to sleep for {str(sleep_time // 60)} min.", f"Coins left: {coins}", separator=" ")
-    time.sleep(sleep_time)
+        print("I entered to all giveaways...",  f"Coins left: {coins}")
+    break
+    #print(f"I am going to sleep for {str(sleep_time // 60)} min.", f"Coins left: {coins}", separator=" ")
+    #time.sleep(sleep_time)
