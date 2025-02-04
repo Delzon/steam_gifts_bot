@@ -262,7 +262,7 @@ def check_won(count):
         work_with_win_file(True, 0)
         return 0
     if int(count) < int(soup):
-        do_beep("won")
+        #do_beep("won")
         set_notify("Congratulations! You won!", "Get your prize on the website", separator=" ")
         work_with_win_file(True, soup)
         return soup
