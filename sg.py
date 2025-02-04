@@ -12,6 +12,19 @@ from subprocess import call
 import datetime
 import configparser
 
+import time
+import random
+
+# Generar un retraso aleatorio entre 2 y 5 segundos
+delay = random.randint(2, 5)
+
+# Hacer una pausa durante el tiempo aleatorio generado
+print(f"Esperando {delay} segundos...")
+time.sleep(delay)
+
+# El resto de tu código aquí
+print("Retraso completado, el script continúa.")
+
 # Version
 version = "1.4.9"
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
