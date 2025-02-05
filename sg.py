@@ -15,7 +15,7 @@ import configparser
 import time
 import random
 
-# Generar un retraso aleatorio entre 2 y 5 segundos
+""" # Generar un retraso aleatorio entre 2 y 5 segundos
 delay = random.randint(2, 5)
 
 # Hacer una pausa durante el tiempo aleatorio generado
@@ -24,7 +24,7 @@ time.sleep(delay)
 
 # El resto de tu código aquí
 print("Retraso completado, el script continúa.")
-
+"""
 # Version
 version = "1.4.9"
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -74,7 +74,7 @@ def get_requests(cookie, req_type, headers):
                 time.sleep(random.randint(3, 14))
             except Exception as e:
                 print("The website is not available")
-                time.sleep(300)
+                time.sleep(5)
                 break
     if req_type == "wishlist" or req_type=="group" or req_type=="recommended":
         do_requests(cookie, headers, end_link=f"&type={req_type}")
@@ -141,11 +141,11 @@ def enter_geaway(geaway_link):
         r = requests.get(geaway_link, cookies=cookie, headers=headers, timeout=120)
         if r.status_code != 200:
             set_notify("Site error", f"Error code: {r.status_code}", separator=". ")
-            time.sleep(300)
+            time.sleep(5)
             return False
     except:
         print("The website is not available")
-        time.sleep(300)
+        time.sleep(5)
         return False
     soup_enter = BeautifulSoup(r.text, "html.parser")
     for bad_word in forbidden_words:
@@ -181,12 +181,12 @@ def enter_geaway(geaway_link):
             extract_coins = r.json()
         except:
             print("Site is not available...")
-            time.sleep(300)
+            time.sleep(5)
             return False
         if extract_coins["type"] == "success":
             coins = extract_coins["points"]
             set_notify("Bot entered to giveaway with game: ", re.sub("&", '', game) + f". Coins left: {coins}", separator="")
-            time.sleep(random.randint(1, 120))
+            time.sleep(random.randint(1, 10))
             return False
         elif extract_coins["msg"] == "Not Enough Points":
             coins = get_coins()
@@ -211,7 +211,7 @@ def enter_geaway(geaway_link):
                 return False
             else:
                 set_notify("Critical error!", f"Link: {link}", separator="")
-                do_beep("critical")
+                #do_beep("critical")
                 return False
         return False
 
@@ -224,7 +224,7 @@ def get_coins():
         return coins
     except Exception as e:
         print(f"Unable to retrieve coins count... Exception: {e}")
-        time.sleep(300)
+        time.sleep(5)
         return 0
 
 
@@ -305,8 +305,7 @@ def do_beep(reason):
 
 def get_games_from_banners():
     try:
-        soup = BeautifulSoup(requests.get("https://www.steamgifts.com/", cookies=cookie, headers=headers, timeout=120).text,
-                             "html.parser")
+        soup = BeautifulSoup(requests.get("https://www.steamgifts.com/", cookies=cookie, headers=headers, timeout=120).text,"html.parser")
         banners = soup.find(class_="pinned-giveaways__inner-wrap pinned-giveaways__inner-wrap--minimized").find_all(
             class_="giveaway__heading__name")
         for games in banners:
@@ -322,7 +321,7 @@ print("I'm turned on...\nHave a nice day!")
 func_list = []
 
 #let's check is new version available
-check_new_version(version)
+#check_new_version(version)
 
 #get settings from settings.cfg file and initialize the variables
 
@@ -352,12 +351,10 @@ if platform.system() == "Windows":
 #test cookies
 try:
     r = requests.head("https://www.steamgifts.com/account/settings/profile",cookies=cookie, headers=headers, timeout=120)
-    print(r)
 except Exception as e:
     print("Can not check cookie... Steamgift is possibly unavailable or there is no internet connection")
 if r.status_code == 301 or r.status_code == 302:
     set_notify("Cookies expired", "Please update your cookies")
-    do_beep("coockie_exept")
     sys.exit(1)
 else:
     #set_notify("Cookies is OK", "We can proceed")
