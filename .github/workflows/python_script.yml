@@ -29,6 +29,9 @@ on:
     - cron: '12 23 * * *'   # 23:12
   workflow_dispatch:  # Permite ejecución manual desde la UI de GitHub Actions
 
+permissions:
+  actions: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -54,3 +57,10 @@ jobs:
           chat_id: ${{ secrets.chat_id }}
           user_agent: ${{ secrets.user_agent }}
           cookie: ${{ secrets.cookie }}
+
+  keepalive:
+    if: github.event.schedule == '0 0 1 * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keepalive Workflow
+        uses: liskin/gh-workflow-keepalive@v1
